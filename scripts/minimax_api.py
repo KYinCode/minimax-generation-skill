@@ -289,7 +289,7 @@ def extract_image_urls(data: dict[str, Any]) -> list[str]:
     return urls
 
 
-def download_media(url: str, output_dir: str, filename: str | None = None) -> str:
+def download_media(url: str, output_dir: str, filename: str | None = None, index: int | None = None) -> str:
     """Download a URL to a local file, inferring extension from URL or Content-Type."""
     if filename is None:
         parsed = urllib.parse.urlparse(url)
@@ -298,7 +298,8 @@ def download_media(url: str, output_dir: str, filename: str | None = None) -> st
         if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".mp3", ".wav", ".flac"):
             ext = ".jpg"
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        filename = f"minimax_image_{timestamp}{ext}"
+        suffix = f"_{index}" if index is not None else ""
+        filename = f"minimax_image_{timestamp}{suffix}{ext}"
     output_path = os.path.join(output_dir, filename)
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=120) as resp:
@@ -441,7 +442,7 @@ def cmd_image(args: argparse.Namespace) -> None:
             if args.output_file:
                 base, ext = os.path.splitext(args.output_file)
                 filename = f"{base}_{i}{ext}" if len(urls) > 1 else args.output_file
-            path = download_media(url, output_dir, filename)
+            path = download_media(url, output_dir, filename, index=i)
             local_paths.append(path)
         summary["local_paths"] = local_paths
     summary["raw"] = data
