@@ -181,4 +181,4 @@ python scripts/minimax_api.py smoke-test \
 
 ## License
 
-同原项目许可证
+Mit
