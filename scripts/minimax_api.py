@@ -343,12 +343,25 @@ def extract_music_url(data: dict[str, Any]) -> str | None:
     return None
 
 
+def _decode_status_msg(msg: str, status_code: int) -> str:
+    """Replace garbled Chinese in status_msg with known descriptions."""
+    if not msg:
+        return msg
+    KNOWN_ERRORS: dict[int, str] = {
+        2056: "Token 额度限制 / 套餐额度不足",
+    }
+    if status_code in KNOWN_ERRORS:
+        return KNOWN_ERRORS[status_code]
+    return msg
+
+
 def check_base_resp(data: dict[str, Any]) -> None:
     base_resp = data.get("base_resp", {})
     if isinstance(base_resp, dict):
         status_code = base_resp.get("status_code", 0)
         if status_code != 0:
-            status_msg = base_resp.get("status_msg", "Unknown error")
+            raw_msg = base_resp.get("status_msg", "Unknown error")
+            status_msg = _decode_status_msg(raw_msg, status_code)
             raise SystemExit(f"MiniMax API error {status_code}: {status_msg}")
 
 
