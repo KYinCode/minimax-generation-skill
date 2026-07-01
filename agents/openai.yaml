@@ -1,0 +1,4 @@
+interface:
+  display_name: "MiniMax Generation"
+  short_description: "Call MiniMax text, image, video, music, and speech generation APIs."
+  default_prompt: "Use MiniMax API to generate text, images, videos, music, or speech via the official API."
