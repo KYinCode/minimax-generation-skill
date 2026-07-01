@@ -35,6 +35,18 @@ Image generation:
 python scripts/minimax_api.py image --prompt "A luminous floating city above a misty canyon at sunrise, cinematic realism" --aspect-ratio 16:9
 ```
 
+Download the generated image to local disk (recommended when the returned URL may not render inline in your chat client):
+
+```bash
+python scripts/minimax_api.py image --prompt "A luminous floating city above a misty canyon at sunrise, cinematic realism" --aspect-ratio 16:9 --download
+```
+
+Save to a specific file:
+
+```bash
+python scripts/minimax_api.py image --prompt "Sunset over ocean" --aspect-ratio 16:9 --download --output-file sunset.png
+```
+
 Image-to-image:
 
 ```bash
@@ -96,6 +108,7 @@ python scripts/minimax_api.py smoke-test --include-video --include-music --inclu
 ## Output Handling
 
 - Return generated image/video/music URLs directly by default. Do not download, save, or inspect generated media unless the user explicitly asks for a local file.
+- **Known issue:** Generated image URLs are signed Aliyun OSS links. Some chat clients (including Kimi Desktop) may fail to render them inline because the client's preview request sends a `HEAD` probe or includes a `Referer`/`Origin` header that the OSS signature does not authorize. If this happens, use `--download` to save the image locally and return the file path.
 - For image responses, expect URL-style results in `data.image_urls[]`.
 - For video responses, query by `task_id` to get status and `file_id` on success.
 - For music responses, `data.audio` contains hex-encoded audio or a URL depending on `output_format`.

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local secrets (never commit real keys)
+.env
+
+# Downloaded/generated media (default output)
+minimax_image_*.jpg
+minimax_image_*.png
+minimax_image_*.webp
+*.mp4
+*.mp3
+*.wav
+*.flac
+
+# Logs
+*.log

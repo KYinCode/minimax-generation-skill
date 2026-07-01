@@ -289,6 +289,25 @@ def extract_image_urls(data: dict[str, Any]) -> list[str]:
     return urls
 
 
+def download_media(url: str, output_dir: str, filename: str | None = None) -> str:
+    """Download a URL to a local file, inferring extension from URL or Content-Type."""
+    if filename is None:
+        parsed = urllib.parse.urlparse(url)
+        path = parsed.path
+        ext = os.path.splitext(path)[1].lower()
+        if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".mp3", ".wav", ".flac"):
+            ext = ".jpg"
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"minimax_image_{timestamp}{ext}"
+    output_path = os.path.join(output_dir, filename)
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = resp.read()
+    with open(output_path, "wb") as f:
+        f.write(data)
+    return output_path
+
+
 def extract_video_info(data: dict[str, Any]) -> tuple[list[str], str | None, str | None]:
     """Extract video URLs, file_id, and status from video query response."""
     urls = []
@@ -406,14 +425,27 @@ def cmd_image(args: argparse.Namespace) -> None:
     check_base_resp(data)
     urls = extract_image_urls(data)
     img_type = "image-to-image" if args.image else "text-to-image"
-    output_result(
-        img_type,
-        data,
-        prompt_used=prompt,
-        translated_prompt=translated_prompt,
-        urls=urls,
-        raw_only=args.raw,
-    )
+    summary: dict[str, Any] = {
+        "type": img_type,
+        "urls": urls,
+        "prompt_used": prompt,
+    }
+    if translated_prompt:
+        summary["translated_prompt"] = translated_prompt
+    if args.download:
+        output_dir = args.output_dir or "."
+        os.makedirs(output_dir, exist_ok=True)
+        local_paths = []
+        for i, url in enumerate(urls):
+            filename = None
+            if args.output_file:
+                base, ext = os.path.splitext(args.output_file)
+                filename = f"{base}_{i}{ext}" if len(urls) > 1 else args.output_file
+            path = download_media(url, output_dir, filename)
+            local_paths.append(path)
+        summary["local_paths"] = local_paths
+    summary["raw"] = data
+    print_json(summary if not args.raw else data)
 
 
 # ---- Video ----
@@ -843,6 +875,9 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("--response-format", default="url", choices=["url", "base64"])
     image.add_argument("--prompt-optimizer", action="store_true")
     image.add_argument("--no-translate", action="store_true", help="Do not translate non-English prompts.")
+    image.add_argument("--download", action="store_true", help="Download generated image(s) to local disk.")
+    image.add_argument("--output-dir", help="Directory to save downloaded images (default: current directory).")
+    image.add_argument("--output-file", help="Filename for the downloaded image. If n>1, appends _0, _1, etc.")
     image.add_argument("--raw", action="store_true")
     image.set_defaults(func=cmd_image)
 
