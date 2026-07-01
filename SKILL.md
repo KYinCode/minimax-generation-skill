@@ -12,8 +12,18 @@ Use this skill to call MiniMax text, image, video, music, and speech synthesis A
 1. Read `references/api.md` when endpoint details, parameters, or response fields are needed.
 2. Read `references/tuning.md` for quality control parameters, defaults, and recommended combos for each modality.
 3. Use `scripts/minimax_api.py` for real API calls instead of rewriting curl by hand.
-3. Require an API key in `MINIMAX_API_KEY` or `MINIMAX_API_TOKEN`. Never print the key.
-4. For light live verification, run `smoke-test`. It tests text, streaming, tool-calling, and image by default. Add `--include-video`, `--include-music`, and `--include-speech` for additional modalities.
+4. Require an API key in `MINIMAX_API_KEY` or `MINIMAX_API_TOKEN`. Never print the key.
+5. For light live verification, run `smoke-test`. It tests text, streaming, tool-calling, and image by default. Add `--include-video`, `--include-music`, and `--include-speech` for additional modalities.
+
+## Quotas & Plans
+
+| Plan tier | Text | Image | Music | Speech | Video |
+|-----------|------|-------|-------|--------|-------|
+| **Plus** (大多数用户) | ✅ | ✅ | ✅ | ✅ | ❌ 需额外订阅 |
+| **Video 专用包** | - | - | - | - | ✅ |
+
+- **Plus 订阅**：文本、图像、语音、音乐 **共享同一额度池**。当调用报错 `2056: Token 额度限制` 时，说明这四个模态的总额度已用完，需充值或等待重置。
+- **视频**：与 Plus 额度独立，需要单独开通视频生成包。如未订阅，视频任务会直接返回 `2056` 或相关权限不足的错误。
 
 ## Commands
 
@@ -83,17 +93,19 @@ Speech synthesis:
 python scripts/minimax_api.py speech --text "你好，这是语音合成测试" --output-file output.mp3
 ```
 
-Light live smoke test:
+Light live smoke test (text + image only, no video or audio quota consumed):
 
 ```bash
 python scripts/minimax_api.py smoke-test
 ```
 
-Full modality smoke test:
+Full modality smoke test (text + image + music + speech + video):
 
 ```bash
 python scripts/minimax_api.py smoke-test --include-video --include-music --include-speech
 ```
+
+> **Note:** `--include-video` requires a separate video subscription. If your plan is Plus (no video pack), video tests will fail with `2056` (quota/permission).
 
 ## Workflow
 
